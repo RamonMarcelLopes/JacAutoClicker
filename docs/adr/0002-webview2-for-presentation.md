@@ -1,0 +1,14 @@
+# Replace the hand-drawn WinForms UI with a WebView2-hosted React app
+
+**Status**: accepted
+
+Getting the hand-rolled WinForms UI (custom `RoundPanel`/`DarkNumeric`/`SegmentedToggle` controls painted with GDI+) to match the reference design pixel-for-pixel proved to be a deep, recurring source of bugs across an entire session of fixes: `AddArc` takes a diameter not a radius (every rounded corner in the app was silently rendering at half the intended size), WinForms z-order rules being the opposite of what's intuitive (earlier-added controls render in front, not behind), `Region`-clipped `Button` borders leaving visible gaps at corners because `Button` draws its border as four straight strokes rather than one continuous path, and Win32 `Region` clipping having no anti-aliasing at all as a hard platform limitation — no amount of tuning was going to make hand-drawn GDI+ controls look as smooth as a real browser engine's rendering.
+
+We replaced the WinForms `MainForm` with a `Microsoft.Web.WebView2.WinForms.WebView2` control hosting the actual React/Tailwind UI from `IdeaDesign` (the reference mockup), built to static HTML/CSS/JS via `next build` with `output: 'export'` and shipped as `Content` under `src/JacAutoClicker/wwwroot`. A `WebViewBridge` class in `Presentation` receives JSON commands the page posts via `window.chrome.webview.postMessage` (`toggleClicking`, `resetCount`, `startTriggerCapture`, `updateInterval`, `updateClickButton`, `updateClickLimit`, window-chrome requests) and pushes a full state snapshot back into the page (`window.__hostBridge.receive(...)`) after every change, including the 30ms trigger-poll tick and the 1s CPS tick that previously lived directly in `MainForm`.
+
+Domain, Application, and Infrastructure did not change at all — this is the intended payoff of keeping those layers free of any WinForms dependency from the start ([ADR 0001](./0001-adopt-clean-architecture.md)). `WebViewBridge` calls the exact same use cases the old `MainForm` called; only the Presentation layer was replaced, and the full Domain/Application test suite kept passing unmodified through the whole migration.
+
+Consequences:
+- The app now depends on the WebView2 Runtime being present (preinstalled on Windows 11 and current Windows 10 with Edge auto-update; not bundled).
+- `IdeaDesign` (gitignored, not part of the shipped app) is the source for the UI; `src/JacAutoClicker/wwwroot` is the committed, buildable static output. There is no automated build step wiring one to the other yet — after editing `IdeaDesign`, rebuild it (`pnpm build` inside `IdeaDesign`) and copy `IdeaDesign/out/` over `src/JacAutoClicker/wwwroot` before building the .NET app.
+- The window's borderless rounded shape is still produced by a WinForms `Form.Region` clip (kept in `MainForm`), sized to match the page's own `rounded-[22px]` card so the hard OS-level clip lands exactly where the browser's already-anti-aliased corner ends.

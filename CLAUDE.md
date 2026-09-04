@@ -1,6 +1,6 @@
 # JacAutoClicker
 
-A Windows desktop utility (WinForms, .NET 8) that simulates repeated mouse clicks, started/stopped by a user-assigned trigger key or mouse button.
+A Windows desktop utility (.NET 8) that simulates repeated mouse clicks, started/stopped by a user-assigned trigger key or mouse button. The UI is a React/Tailwind app (source in `IdeaDesign`, gitignored) hosted in a WebView2 control; a thin WinForms `MainForm` provides the window, and `Presentation/WebViewBridge.cs` is the only bridge between the page and the C# use cases. See [ADR 0002](./docs/adr/0002-webview2-for-presentation.md).
 
 Read [CONTEXT.md](./CONTEXT.md) for the domain vocabulary (Trigger, Click Button, Clicker Config, Click Session, Click Limit) before touching Domain or Application code. Read [docs/architecture.md](./docs/architecture.md) for the full layer breakdown before adding or moving code. Check [docs/adr/](./docs/adr/) for recorded architectural decisions before revisiting one.
 
@@ -14,13 +14,20 @@ dotnet test JacAutoClicker.slnx       # run the xUnit suite
 dotnet run --project src/JacAutoClicker   # run the app
 ```
 
+After changing the UI (`IdeaDesign`), rebuild and resync the static output before building the .NET app:
+```
+cd IdeaDesign && pnpm build
+rm -rf ../src/JacAutoClicker/wwwroot && cp -r out/. ../src/JacAutoClicker/wwwroot/
+```
+
 ## Architecture rules
 
 - Clean Architecture, single project: `src/JacAutoClicker/{Domain,Application,Infrastructure,Presentation}`. Dependencies point inward only — `Presentation`/`Infrastructure` → `Application` → `Domain`. Never the reverse.
-- `Domain` has zero dependency on `System.Windows.Forms` or Win32. If a change would make Domain reference either, the conversion belongs in `Presentation` or `Infrastructure` instead.
+- `Domain` has zero dependency on `System.Windows.Forms`, Win32, or WebView2. If a change would make Domain reference any of those, the conversion belongs in `Presentation` or `Infrastructure` instead.
 - One `Application/UseCases` class per user-facing action, with a single public `Execute`/`ExecuteAsync` method. Don't fold multiple actions into one use case class.
-- Only give something a port (`Domain/Repositories` or `Domain/Services` interface) when `Application` actually needs to orchestrate it. Pure UI chrome (custom controls, window styling) stays directly in `Presentation` with no interface.
+- Only give something a port (`Domain/Repositories` or `Domain/Services` interface) when `Application` actually needs to orchestrate it. Pure UI chrome lives in the React app with no interface.
 - `Program.cs` is the only composition root — it's the one place allowed to reference all four layers and wire `Microsoft.Extensions.DependencyInjection`.
+- New UI-triggered behavior means: add a message type in `WebViewBridge.HandleMessage`, call the matching use case, add the field to the pushed state if the page needs to see it — don't put use-case logic in the React app, and don't put display formatting/JSX in C#.
 
 ## Conventions
 

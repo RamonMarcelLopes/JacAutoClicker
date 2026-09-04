@@ -38,6 +38,7 @@ internal static class Program
         services.AddTransient<LoadConfigUseCase>();
         services.AddTransient<SaveConfigUseCase>();
 
+        services.AddTransient<WebViewBridge>();
         services.AddTransient<MainForm>();
 
         return services.BuildServiceProvider();
