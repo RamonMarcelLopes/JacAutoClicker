@@ -4,7 +4,7 @@ A Windows desktop utility (.NET 8) that simulates repeated mouse clicks, started
 
 Read [CONTEXT.md](./CONTEXT.md) for the domain vocabulary (Trigger, Click Button, Clicker Config, Click Session, Click Limit) before touching Domain or Application code. Read [docs/architecture.md](./docs/architecture.md) for the full layer breakdown before adding or moving code. Check [docs/adr/](./docs/adr/) for recorded architectural decisions before revisiting one.
 
-This is not a Lama project — Lama-specific conventions (branch/commit naming with `lama2026`, PR-without-description default, etc.) do not apply here.
+This is a standalone open-source project — conventions from other, unrelated projects don't apply here. Branches, commits, and PRs follow only what's written in this file.
 
 ## Commands
 
