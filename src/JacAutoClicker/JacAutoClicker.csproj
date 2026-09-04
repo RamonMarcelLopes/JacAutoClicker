@@ -41,7 +41,7 @@
     <Exec Command="pnpm build" WorkingDirectory="$(WebProjectDir)" />
     <RemoveDir Directories="$(MSBuildProjectDirectory)\wwwroot" Condition="Exists('$(MSBuildProjectDirectory)\wwwroot')" />
     <ItemGroup>
-      <FrontendOutput Include="$(WebProjectDir)\out\**\*.*" />
+      <FrontendOutput Include="$(WebProjectDir)\out\**\*.*" Exclude="$(WebProjectDir)\out\**\*.txt" />
     </ItemGroup>
     <Copy SourceFiles="@(FrontendOutput)" DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\%(RecursiveDir)" />
     <RemoveDir Directories="$(OutDir)wwwroot" Condition="Exists('$(OutDir)wwwroot')" />

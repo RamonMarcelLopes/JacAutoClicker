@@ -55,11 +55,7 @@ The UI is the `src/JacAutoClicker.Web` React/Tailwind app, built to static files
 - Page → C#: `window.chrome.webview.postMessage({ type: "...", ... })` — `toggleClicking`, `resetCount`, `startTriggerCapture`, `updateInterval`, `updateClickButton`, `updateClickLimit`, `minimizeWindow`, `closeWindow`, `startWindowDrag`.
 - C# → page: after every state change, `WebViewBridge` serializes `{ running, capturingTrigger, clickCount, cps, triggerLabel, interval, clickButton, clickLimit }` and calls `window.__hostBridge.receive(...)` via `ExecuteScriptAsync`. The page has no local source of truth beyond that snapshot (`lib/use-host-state.ts`).
 
-**After editing `src/JacAutoClicker.Web`**, rebuild and resync before building the .NET app:
-```
-cd src/JacAutoClicker.Web && pnpm build
-rm -rf ../JacAutoClicker/wwwroot && cp -r out/. ../JacAutoClicker/wwwroot/
-```
+`JacAutoClicker.csproj`'s `BuildFrontend` target runs `pnpm build` in `src/JacAutoClicker.Web` and syncs its `out/` into `wwwroot` (both the source folder and the build output) before every build — editing the UI needs no manual rebuild step. `-p:SkipFrontendBuild=true` skips it (used by `JacAutoClicker.Tests`'s `ProjectReference`, which never needs the UI, and available for building/publishing without Node/pnpm from whatever `wwwroot` already has committed). Next's `generateBuildId` is pinned to a constant (`next.config.mjs`) so the `_next/static/<id>/` folder name stays stable across builds — a random id would rename that folder every run, which raced with the `Content` item list MSBuild fixes at project evaluation time.
 
 ## Runtime state vs. persisted config
 

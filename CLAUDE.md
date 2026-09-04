@@ -14,11 +14,7 @@ dotnet test JacAutoClicker.slnx       # run the xUnit suite
 dotnet run --project src/JacAutoClicker   # run the app
 ```
 
-After changing the UI (`src/JacAutoClicker.Web`), rebuild and resync the static output before building the .NET app:
-```
-cd src/JacAutoClicker.Web && pnpm build
-rm -rf ../JacAutoClicker/wwwroot && cp -r out/. ../JacAutoClicker/wwwroot/
-```
+`dotnet build`/`dotnet run` on `JacAutoClicker.csproj` build the UI (`pnpm build` in `src/JacAutoClicker.Web`) and sync its output into `wwwroot` automatically (the `BuildFrontend` MSBuild target) — no manual step after changing the UI. Pass `-p:SkipFrontendBuild=true` to skip it and use whatever is already committed in `wwwroot` (needed on a machine without Node/pnpm, e.g. `dotnet test` already sets this since it never touches the UI).
 
 ## Architecture rules
 
