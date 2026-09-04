@@ -1,6 +1,6 @@
 # JacAutoClicker
 
-A Windows desktop utility (.NET 8) that simulates repeated mouse clicks, started/stopped by a user-assigned trigger key or mouse button. The UI is a React/Tailwind app (source in `IdeaDesign`, gitignored) hosted in a WebView2 control; a thin WinForms `MainForm` provides the window, and `Presentation/WebViewBridge.cs` is the only bridge between the page and the C# use cases. See [ADR 0002](./docs/adr/0002-webview2-for-presentation.md).
+A Windows desktop utility (.NET 8) that simulates repeated mouse clicks, started/stopped by a user-assigned trigger key or mouse button. The UI is a React/Tailwind app (source in `src/JacAutoClicker.Web`) hosted in a WebView2 control; a thin WinForms `MainForm` provides the window, and `Presentation/WebViewBridge.cs` is the only bridge between the page and the C# use cases. See [ADR 0002](./docs/adr/0002-webview2-for-presentation.md).
 
 Read [CONTEXT.md](./CONTEXT.md) for the domain vocabulary (Trigger, Click Button, Clicker Config, Click Session, Click Limit) before touching Domain or Application code. Read [docs/architecture.md](./docs/architecture.md) for the full layer breakdown before adding or moving code. Check [docs/adr/](./docs/adr/) for recorded architectural decisions before revisiting one.
 
@@ -14,10 +14,10 @@ dotnet test JacAutoClicker.slnx       # run the xUnit suite
 dotnet run --project src/JacAutoClicker   # run the app
 ```
 
-After changing the UI (`IdeaDesign`), rebuild and resync the static output before building the .NET app:
+After changing the UI (`src/JacAutoClicker.Web`), rebuild and resync the static output before building the .NET app:
 ```
-cd IdeaDesign && pnpm build
-rm -rf ../src/JacAutoClicker/wwwroot && cp -r out/. ../src/JacAutoClicker/wwwroot/
+cd src/JacAutoClicker.Web && pnpm build
+rm -rf ../JacAutoClicker/wwwroot && cp -r out/. ../JacAutoClicker/wwwroot/
 ```
 
 ## Architecture rules

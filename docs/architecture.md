@@ -23,8 +23,8 @@ src/JacAutoClicker/
     ├── WebViewBridge.cs  receives JSON commands from the page, calls use cases, pushes state back
     └── TriggerLabelFormatter.cs
 
-wwwroot/                 static export of the IdeaDesign React/Tailwind UI (see ADR 0002) — this
-                          is committed, buildable output; IdeaDesign itself is gitignored
+wwwroot/                 static export of the src/JacAutoClicker.Web React/Tailwind UI (see ADR 0002) — this
+                          is committed, buildable output kept in sync manually (see below)
 ```
 
 ## Dependency rule
@@ -35,7 +35,7 @@ Domain has no reference to `System.Windows.Forms` or Win32 — `Trigger`'s `KeyT
 
 ## Ports (3, deliberately minimal)
 
-Only capabilities the Application layer actually orchestrates get a port. Pure UI chrome (buttons, cards, the traffic-light window controls) lives in the React UI (`IdeaDesign` → `wwwroot`) — Application never depends on it, so there's nothing to invert.
+Only capabilities the Application layer actually orchestrates get a port. Pure UI chrome (buttons, cards, the traffic-light window controls) lives in the React UI (`src/JacAutoClicker.Web` → `wwwroot`) — Application never depends on it, so there's nothing to invert.
 
 - **`IClickSimulator`** — simulates a mouse click. Implemented by `Win32ClickSimulator` (`mouse_event`).
 - **`ITriggerListener`** — polls whether the configured Trigger is currently pressed (`IsTriggered`), and captures the next key/mouse-button press when the user rebinds (`BeginCapture`/`EndCapture`). Implemented by `Win32TriggerListener` using `GetAsyncKeyState` for polling and low-level mouse + keyboard hooks (`WH_MOUSE_LL`, `WH_KEYBOARD_LL`) for capture — capture doesn't depend on window focus.
@@ -49,16 +49,16 @@ The click loop runs as a cancellable `Task` (`StartClickingUseCase`), not a raw 
 
 ## Presentation: WebView2 bridge (see [ADR 0002](./adr/0002-webview2-for-presentation.md))
 
-The UI is the `IdeaDesign` React/Tailwind app, built to static files (`next build`, `output: 'export'`) and shipped as `wwwroot`. `MainForm` hosts a `WebView2` control pointed at `https://jacaclicker.app/index.html` via `SetVirtualHostNameToFolderMapping`, and clips the window to a rounded region matching the page's own `rounded-[22px]` card.
+The UI is the `src/JacAutoClicker.Web` React/Tailwind app, built to static files (`next build`, `output: 'export'`) and shipped as `wwwroot`. `MainForm` hosts a `WebView2` control pointed at `https://jacaclicker.app/index.html` via `SetVirtualHostNameToFolderMapping`, and clips the window to a rounded region matching the page's own `rounded-[22px]` card.
 
 `WebViewBridge` is the only class that talks to both the web page and the use cases:
 - Page → C#: `window.chrome.webview.postMessage({ type: "...", ... })` — `toggleClicking`, `resetCount`, `startTriggerCapture`, `updateInterval`, `updateClickButton`, `updateClickLimit`, `minimizeWindow`, `closeWindow`, `startWindowDrag`.
 - C# → page: after every state change, `WebViewBridge` serializes `{ running, capturingTrigger, clickCount, cps, triggerLabel, interval, clickButton, clickLimit }` and calls `window.__hostBridge.receive(...)` via `ExecuteScriptAsync`. The page has no local source of truth beyond that snapshot (`lib/use-host-state.ts`).
 
-**After editing `IdeaDesign`**, rebuild and resync before building the .NET app:
+**After editing `src/JacAutoClicker.Web`**, rebuild and resync before building the .NET app:
 ```
-cd IdeaDesign && pnpm build
-rm -rf ../src/JacAutoClicker/wwwroot && cp -r out/. ../src/JacAutoClicker/wwwroot/
+cd src/JacAutoClicker.Web && pnpm build
+rm -rf ../JacAutoClicker/wwwroot && cp -r out/. ../JacAutoClicker/wwwroot/
 ```
 
 ## Runtime state vs. persisted config
