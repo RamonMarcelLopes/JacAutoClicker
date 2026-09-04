@@ -26,8 +26,8 @@ export default function Page() {
           </div>
           <div className="mt-2 flex items-center justify-between gap-3">
             <div className="flex min-w-0 items-center gap-3">
-              <div className="flex h-9 w-9 items-center justify-center overflow-hidden rounded-xl bg-primary shadow-sm">
-                <img src="/jaca-icon.png" alt="" className="h-7 w-7 object-contain" draggable={false} />
+              <div className="flex h-[56px] w-[56px] shrink-0 items-center justify-center">
+                <img src="/jaca-icon.png" alt="" className="h-full w-full object-contain" draggable={false} />
               </div>
               <div>
                 <h1 className="font-mono text-[15px] font-bold tracking-tight">Jacaclicker</h1>

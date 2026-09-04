@@ -27,4 +27,24 @@
   <ItemGroup>
     <InternalsVisibleTo Include="JacAutoClicker.Tests" />
   </ItemGroup>
+
+  <!--
+    Builds the React UI (src/JacAutoClicker.Web) and syncs its static output into wwwroot before
+    every build, so `dotnet build`/`dotnet run` always ship the current UI without a manual step.
+    Skip with -p:SkipFrontendBuild=true (e.g. publishing from a machine without Node/pnpm) to use
+    whatever is already committed in wwwroot.
+  -->
+  <PropertyGroup>
+    <WebProjectDir>$(MSBuildProjectDirectory)\..\JacAutoClicker.Web</WebProjectDir>
+  </PropertyGroup>
+  <Target Name="BuildFrontend" BeforeTargets="Build" Condition="'$(SkipFrontendBuild)' != 'true'">
+    <Exec Command="pnpm build" WorkingDirectory="$(WebProjectDir)" />
+    <RemoveDir Directories="$(MSBuildProjectDirectory)\wwwroot" Condition="Exists('$(MSBuildProjectDirectory)\wwwroot')" />
+    <ItemGroup>
+      <FrontendOutput Include="$(WebProjectDir)\out\**\*.*" />
+    </ItemGroup>
+    <Copy SourceFiles="@(FrontendOutput)" DestinationFolder="$(MSBuildProjectDirectory)\wwwroot\%(RecursiveDir)" />
+    <RemoveDir Directories="$(OutDir)wwwroot" Condition="Exists('$(OutDir)wwwroot')" />
+    <Copy SourceFiles="@(FrontendOutput)" DestinationFolder="$(OutDir)wwwroot\%(RecursiveDir)" />
+  </Target>
 </Project>

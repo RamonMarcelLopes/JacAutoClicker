@@ -13,6 +13,7 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\JacAutoClicker\JacAutoClicker.csproj" />
+    <!-- Tests never need the UI rebuilt; skip the frontend build wired into JacAutoClicker.csproj. -->
+    <ProjectReference Include="..\..\src\JacAutoClicker\JacAutoClicker.csproj" AdditionalProperties="SkipFrontendBuild=true" />
   </ItemGroup>
 </Project>
